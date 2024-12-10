@@ -1,9 +1,21 @@
 # frozen_string_literal: true
 
 class Users::RegistrationsController < Devise::RegistrationsController
+  include SessionsFix
+
   respond_to :json
   before_action :configure_sign_up_params, only: [ :create ]
   before_action :configure_account_update_params, only: [ :update ]
+
+  private
+
+  def respond_with(current_user, _opts = {})
+    if resource.persisted?
+      render json: { user: current_user }, status: 201
+    else
+      render json: { errors: current_user.errors.full_messages }, status: 422
+    end
+  end
 
   # GET /resource/sign_up
   # def new
@@ -39,7 +51,7 @@ class Users::RegistrationsController < Devise::RegistrationsController
   #   super
   # end
 
-  # protected
+  protected
 
   # If you have extra params to permit, append them to the sanitizer.
   def configure_sign_up_params
